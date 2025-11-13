@@ -7,7 +7,7 @@ import time
 # 🎯 Lottery Low-Payout Optimizer (7-number)
 # --------------------------------------------------------------
 st.set_page_config(page_title="Lottery Low-Payout Optimizer", page_icon="🎯", layout="wide")
-st.title("🎯 Lottery Low-Payout Optimizer (7-number)")
+st.title("🎯 7 number all pay)")
 st.markdown("Upload your Excel file — this tool finds 7-number combos with **low payout**, "
             "and checks if total payout < total ticket price (4 PKR per ticket).")
 
