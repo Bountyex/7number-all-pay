@@ -83,7 +83,7 @@ if uploaded:
                     new.sort()
                     matches_new = combo_to_matches(new)
                     total_new, _ = matches_to_total(matches_new)
-                    # ✅ Allow only if new total payout < current total
+                    # Only accept if strictly lower total payout
                     if total_new < total:
                         combo = new
                         matches = matches_new
@@ -100,15 +100,25 @@ if uploaded:
     if st.button("🚀 Run Optimizer"):
         st.info("Searching for low-payout combinations... This may take up to 1 minute.")
         results = []
+        seen = set()   # 🔥 store unique signature combos
+
         start = time.time()
 
         for _ in range(300):
             combo = random.sample(range(1, 38), 7)
             combo, total, matches = hill_climb(combo)
             total, counts = matches_to_total(matches)
-            # ✅ Include only if payout < total ticket price and 2–5 tickets match 4 numbers
+
+            sig = tuple(combo)
+
+            # 🔥 Skip duplicates
+            if sig in seen:
+                continue
+
             if total < total_ticket_price and min_4 <= counts[4] <= max_4:
-                results.append((combo, total, counts))
+                results.append((sig, total, counts))
+                seen.add(sig)
+
             if time.time() - start > 60:
                 break
 
@@ -117,6 +127,7 @@ if uploaded:
         # ----------------------------------------------------------
         if results:
             res = sorted(results, key=lambda x: (x[1], -x[2][4]))[:10]
+
             df_out = pd.DataFrame([
                 {
                     "Combo": ",".join(map(str, combo)),
@@ -128,17 +139,18 @@ if uploaded:
                     "Tickets with 7 matches": counts[7],
                 } for combo, total, counts in res
             ])
+
             st.subheader("🎯 Top Low-Payout Combinations (Below Ticket Cost)")
             st.dataframe(df_out, use_container_width=True)
 
-            # ✅ Add result summary
+            # Best result
             best = res[0]
             st.success(
                 f"💡 Best combo `{','.join(map(str,best[0]))}` has total payout {best[1]:,} PKR, "
                 f"which is less than total ticket cost ({total_ticket_price:,} PKR)"
             )
 
-            # Optional download
+            # Download button
             csv = df_out.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Results (CSV)", data=csv, file_name="low_payout_results.csv", mime="text/csv")
 
